@@ -3,7 +3,7 @@ import App from '../framework/app.js'
 class MyApp extends App{
 
   _main(){
-    super();
+    super._main();
     // Get a reference to the <body> element
     const body = document.body;
 
