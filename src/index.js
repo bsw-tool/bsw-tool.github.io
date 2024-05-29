@@ -18,3 +18,4 @@ class MyApp extends App{
 
 const app = new MyApp("bsw tool");
 app.run();
+console.log('Running...');
