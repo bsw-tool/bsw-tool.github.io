@@ -5,7 +5,7 @@ export default class App {
 
   run() {
     document.addEventListener('DOMContentLoaded', () => {
-      App._main();
+      this._main();
     });
   }
 
