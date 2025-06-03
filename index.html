@@ -1,13 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="module" src="src/index.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Random Number Generator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      text-align: center;
+    }
+
+    #numberDisplay {
+      font-size: 3rem;
+      margin: 1rem;
+    }
+
+    button {
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #history {
+      margin-top: 2rem;
+      max-width: 90vw;
+      text-align: center;
+      font-size: 1.2rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+  </style>
 </head>
 <body>
-    <center>
-        <a href="/godot" >tool</a>
-    </center>
+  <div id="numberDisplay">-- --</div>
+  <button onclick="generate()">Klik Saya</button>
+  <div id="history"></div>
+
+  <script>
+    let count = 0;
+    const maxCount = 10;
+    let history = [];
+
+    function getRandomNumber() {
+      return Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    }
+
+    function generate() {
+      if (count < maxCount) {
+        const a = getRandomNumber();
+        const b = getRandomNumber();
+        const value = `${a} ${b}`;
+        document.getElementById("numberDisplay").textContent = value;
+        history.push(value);
+        count++;
+        if (count === maxCount) {
+          showHistory();
+        }
+      } else {
+        // Reset
+        count = 0;
+        history = [];
+        document.getElementById("numberDisplay").textContent = "-- --";
+        document.getElementById("history").innerHTML = "";
+      }
+    }
+
+    function showHistory() {
+      const listItems = history.map(item => `<li>${item}</li>`).join('');
+      document.getElementById("history").innerHTML = `
+        <h3>Hasil:</h3>
+        <ul>${listItems}</ul>
+        <p>Klik untuk mulai ulang</p>
+      `;
+    }
+  </script>
 </body>
 </html>
