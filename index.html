@@ -136,8 +136,8 @@ button:active { transform: scale(.97); }
 #screen-start h2 { font-size: 18px; }
 .rules { color: var(--dim); font-size: 13.5px; line-height: 1.55; }
 .rules em { color: var(--text); font-style: normal; font-weight: 600; }
-.diff-row { display: flex; gap: 8px; justify-content: center; }
-.diff { flex: 1; max-width: 130px; }
+.diff-row { display: flex; gap: 8px; justify-content: center; padding: 0 6px; }
+.diff { flex: 1; max-width: 130px; padding: 10px 6px; }
 .diff.selected {
   border-color: var(--accent);
   background: rgba(255, 180, 84, .14);
@@ -396,6 +396,7 @@ button:active { transform: scale(.97); }
       <button class="diff" data-diff="easy">😴 Easy</button>
       <button class="diff selected" data-diff="normal">🤖 Normal</button>
       <button class="diff" data-diff="hard">🔥 Hard</button>
+      <button class="diff" data-diff="expert">🧠 Expert</button>
     </div>
     <p class="rules" id="start-highscore">🏆 Your best on <em id="start-highscore-diff">normal</em>: <em id="start-highscore-val">0</em></p>
     <button id="btn-start" class="primary">New game</button>
@@ -739,6 +740,7 @@ function botChooseMove() {
   const moves = listMoves(Game.board, Game.hands.bot);
   if (!moves.length) return null;
   if (Game.difficulty === 'easy') return moves[(Math.random() * moves.length) | 0];
+  if (Game.difficulty === 'expert') return expertChooseMove();
   let best = null, bestVal = -Infinity;
   for (const mv of moves) {
     const sim = simulateMove(Game.board, mv.piece, mv.r, mv.c);
@@ -755,6 +757,67 @@ function botChooseMove() {
       }
     }
     val += Math.random() * 2;
+    if (val > bestVal) { bestVal = val; best = mv; }
+  }
+  return best;
+}
+
+/* ---- Expert: depth-limited alpha-beta over the known hands ---- */
+const EXPERT_DEPTH = 4, EXPERT_BEAM = 8, EXPERT_BEAM_ROOT = 14;
+
+function expertEval(board, scoreDiff) {
+  const { holes, regions } = boardHealth(board);
+  return scoreDiff * 120 - holes * 8 - Math.max(0, regions - 1) * 4;
+}
+
+// Rank a hand's legal moves by a quick heuristic, returning {mv, sim} entries.
+function rankedMoves(board, hand, limit) {
+  const scored = listMoves(board, hand).map(mv => {
+    const sim = simulateMove(board, mv.piece, mv.r, mv.c);
+    return { mv, sim, key: sim.points * 12 + sim.adjacency * 2 };
+  });
+  scored.sort((a, b) => b.key - a.key);
+  return (limit && scored.length > limit) ? scored.slice(0, limit) : scored;
+}
+
+// scoreDiff is (bot - human) accumulated within the search.
+function expertSearch(board, botHand, humanHand, turn, depth, alpha, beta, scoreDiff) {
+  const hand = turn === 'bot' ? botHand : humanHand;
+  if (depth === 0 || !hand.some(p => p)) return expertEval(board, scoreDiff);
+  const ranked = rankedMoves(board, hand, EXPERT_BEAM);
+  if (!ranked.length) {
+    // Mover can't place a known piece -> treat as stuck (loses; ties go to the stuck player).
+    const result = scoreDiff > 0 ? 1 : scoreDiff < 0 ? -1 : (turn === 'bot' ? -1 : 1);
+    return result * 1e6 + scoreDiff * 120;
+  }
+  if (turn === 'bot') {
+    let val = -Infinity;
+    for (const { mv, sim } of ranked) {
+      const nh = botHand.slice(); nh[mv.handIndex] = null;
+      val = Math.max(val, expertSearch(sim.board, nh, humanHand, 'human', depth - 1, alpha, beta, scoreDiff + sim.points));
+      alpha = Math.max(alpha, val);
+      if (alpha >= beta) break;
+    }
+    return val;
+  }
+  let val = Infinity;
+  for (const { mv, sim } of ranked) {
+    const nh = humanHand.slice(); nh[mv.handIndex] = null;
+    val = Math.min(val, expertSearch(sim.board, botHand, nh, 'bot', depth - 1, alpha, beta, scoreDiff - sim.points));
+    beta = Math.min(beta, val);
+    if (alpha >= beta) break;
+  }
+  return val;
+}
+
+function expertChooseMove() {
+  const ranked = rankedMoves(Game.board, Game.hands.bot, EXPERT_BEAM_ROOT);
+  if (!ranked.length) return null;
+  let best = null, bestVal = -Infinity;
+  for (const { mv, sim } of ranked) {
+    const nh = Game.hands.bot.slice(); nh[mv.handIndex] = null;
+    let val = expertSearch(sim.board, nh, Game.hands.human.slice(), 'human', EXPERT_DEPTH - 1, -Infinity, Infinity, sim.points);
+    val += Math.random() * 0.5;
     if (val > bestVal) { bestVal = val; best = mv; }
   }
   return best;
