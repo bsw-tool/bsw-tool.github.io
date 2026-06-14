@@ -436,6 +436,7 @@ button:active { transform: scale(.97); }
       <h2 id="go-title"></h2>
       <p id="go-reason"></p>
       <div id="go-scores"></div>
+      <button id="btn-share" class="primary" hidden>Share result 📤</button>
       <div class="go-buttons">
         <button id="btn-rematch" class="primary">Rematch</button>
         <button id="btn-gomenu" class="ghost-btn">Change difficulty</button>
@@ -1132,7 +1133,116 @@ async function showGameOver() {
       ? `<div class="go-row"><span>🏆 New high score (${Game.difficulty})!</span><b>${best}</b></div>`
       : `<div class="go-row"><span>🏆 Your best (${Game.difficulty})</span><b>${best}</b></div>`);
   renderHighScore();
+  lastResult = { won: Game.winner === 'human', you: Game.scores.human, bot: Game.scores.bot, difficulty: Game.difficulty, best, isRecord };
+  SEL('#btn-share').hidden = Game.winner !== 'human';
   SEL('#overlay').hidden = false;
+}
+
+let lastResult = null;
+
+function shareCardColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = n => (cs.getPropertyValue(n) || '').trim();
+  return { you: v('--you') || '#25d0d0', bot: v('--bot') || '#ef2d3c', accent: v('--accent') || '#ffd11a', text: v('--text') || '#f4f8ff' };
+}
+
+function buildShareCard() {
+  const W = 1080, H = 1350;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  const col = shareCardColors();
+  const r = lastResult || { you: 0, bot: 0, difficulty: 'normal', best: 0, isRecord: false };
+
+  // background gradient
+  const g = x.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#081a4a'); g.addColorStop(1, '#163680');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+
+  // decorative drifting blocks
+  const palette = ['#ef2d3c', '#ff8a1e', '#ffd11a', '#45c93a', '#25d0d0', '#2f7bff', '#a64dff', '#ff5bbf'];
+  x.save();
+  for (let i = 0; i < 20; i++) {
+    x.globalAlpha = 0.08 + (i % 3) * 0.03;
+    x.fillStyle = palette[i % palette.length];
+    const s = 60 + (i * 37 % 90);
+    const px = (i * 173 % W), py = (i * 251 % H);
+    x.translate(px, py); x.rotate((i * 0.7) % Math.PI);
+    if (x.roundRect) { x.beginPath(); x.roundRect(-s / 2, -s / 2, s, s, s * 0.28); x.fill(); }
+    else x.fillRect(-s / 2, -s / 2, s, s);
+    x.setTransform(1, 0, 0, 1, 0, 0);
+  }
+  x.restore();
+
+  const cx = W / 2;
+  x.textAlign = 'center';
+
+  // logo
+  x.font = '800 60px "Segoe UI", system-ui, sans-serif';
+  x.fillStyle = col.text; x.fillText('BLOCK', cx - 70, 180);
+  x.fillStyle = col.accent; x.fillText('DUEL', cx + 95, 180);
+
+  // title
+  x.fillStyle = col.text;
+  x.font = '800 150px "Segoe UI", system-ui, sans-serif';
+  x.fillText('Victory! 🏆', cx, 470);
+  x.font = '600 48px "Segoe UI", system-ui, sans-serif';
+  x.fillStyle = '#9fb6e8';
+  x.fillText('I beat the Bot (' + r.difficulty.toUpperCase() + ')', cx, 560);
+
+  // score block
+  const drawScore = (label, val, color, y) => {
+    x.fillStyle = 'rgba(255,255,255,.07)';
+    if (x.roundRect) { x.beginPath(); x.roundRect(160, y, W - 320, 150, 26); x.fill(); }
+    else x.fillRect(160, y, W - 320, 150);
+    x.textAlign = 'left';
+    x.fillStyle = col.text; x.font = '700 58px "Segoe UI", system-ui, sans-serif';
+    x.fillText(label, 215, y + 98);
+    x.textAlign = 'right';
+    x.fillStyle = color; x.font = '800 88px "Segoe UI", system-ui, sans-serif';
+    x.fillText(String(val), W - 215, y + 105);
+    x.textAlign = 'center';
+  };
+  drawScore('You', r.you, col.you, 690);
+  drawScore('Bot', r.bot, col.bot, 880);
+
+  // high score / record
+  x.fillStyle = col.accent;
+  x.font = '700 54px "Segoe UI", system-ui, sans-serif';
+  x.fillText(r.isRecord ? ('🏆 New high score: ' + r.best) : ('🏆 Best: ' + r.best), cx, 1140);
+
+  // footer url
+  x.fillStyle = '#9fb6e8';
+  x.font = '600 44px "Segoe UI", system-ui, sans-serif';
+  x.fillText('https://bsw-tool.github.io', cx, 1270);
+
+  return cv;
+}
+
+async function shareWin() {
+  const r = lastResult; if (!r) return;
+  const text = `I beat the Bot on ${r.difficulty} ${r.you}–${r.bot} 🎮 Block Duel`;
+  const url = location.origin + location.pathname;
+  const cv = buildShareCard();
+  const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+  if (blob) {
+    const file = new File([blob], 'blockduel-win.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], text, url, title: 'Block Duel' }); return; }
+      catch (e) { if (e.name === 'AbortError') return; }
+    }
+  }
+  if (navigator.share) {
+    try { await navigator.share({ text: text + ' ' + url, title: 'Block Duel' }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  if (blob) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'blockduel-win.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  }
 }
 
 function requestFullscreen() {
@@ -1196,6 +1306,7 @@ window.addEventListener('DOMContentLoaded', () => {
   SEL('#btn-start').addEventListener('click', () => uiStartGame(chosenDiff));
   SEL('#btn-resume').addEventListener('click', uiResumeGame);
   SEL('#btn-rematch').addEventListener('click', () => uiStartGame(Game.difficulty));
+  SEL('#btn-share').addEventListener('click', shareWin);
   SEL('#btn-gomenu').addEventListener('click', uiBackToMenu);
   SEL('#btn-menu').addEventListener('click', uiBackToMenu);
 
