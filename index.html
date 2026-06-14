@@ -343,6 +343,7 @@ button:active { transform: scale(.97); }
       <button class="diff" data-diff="hard">🔥 Hard</button>
     </div>
     <p class="rules" id="start-highscore">🏆 Your best on <em id="start-highscore-diff">normal</em>: <em id="start-highscore-val">0</em></p>
+    <button id="btn-resume" class="primary" hidden>↩ Resume game</button>
     <button id="btn-start" class="primary">Start game</button>
   </section>
 
@@ -934,6 +935,7 @@ function uiStartGame(difficulty) {
   flowGen++; cancelDrag(); newGame(difficulty);
   SEL('#screen-start').hidden = true; SEL('#screen-game').hidden = false;
   SEL('#overlay').hidden = true; SEL('#btn-menu').hidden = false;
+  SEL('#btn-resume').hidden = true;
   SEL('#bot-diff').textContent = '· ' + Game.difficulty;
   inputLocked = false; Music.start();
   renderBoard(); renderHands(); updateHud();
@@ -948,6 +950,22 @@ function uiBackToMenu() {
   flowGen++; Music.stop(); cancelDrag();
   SEL('#screen-game').hidden = true; SEL('#overlay').hidden = true;
   SEL('#screen-start').hidden = false; SEL('#btn-menu').hidden = true;
+  // Offer a Resume button while a game is still in progress.
+  SEL('#btn-resume').hidden = Game.over || !Game.board;
+  renderHighScore();
+}
+
+function uiResumeGame() {
+  if (!Game.board || Game.over) return;
+  flowGen++; cancelDrag();
+  SEL('#screen-start').hidden = true; SEL('#screen-game').hidden = false;
+  SEL('#overlay').hidden = true; SEL('#btn-menu').hidden = false;
+  SEL('#btn-resume').hidden = true;
+  Music.start();
+  renderBoard(); renderHands(); updateHud();
+  // Resume the active turn: continue the bot's move, or hand control back.
+  if (Game.current === 'bot') { botTurn(); }
+  else { inputLocked = false; renderHands(); }
 }
 
 /* ============ BOOT ============ */
@@ -964,6 +982,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
   SEL('#btn-start').addEventListener('click', () => uiStartGame(chosenDiff));
+  SEL('#btn-resume').addEventListener('click', uiResumeGame);
   SEL('#btn-rematch').addEventListener('click', () => uiStartGame(Game.difficulty));
   SEL('#btn-gomenu').addEventListener('click', uiBackToMenu);
   SEL('#btn-menu').addEventListener('click', uiBackToMenu);
