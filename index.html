@@ -87,6 +87,7 @@ button:active { transform: scale(.97); }
 
 /* ---------- start screen ---------- */
 #screen-start {
+  position: relative;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -96,6 +97,14 @@ button:active { transform: scale(.97); }
   gap: 18px;
   text-align: center;
   margin-top: 6vh;
+}
+#btn-resume {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 11px;
+  font-size: 18px;
+  line-height: 1;
 }
 #screen-start h2 { font-size: 18px; }
 .rules { color: var(--dim); font-size: 13.5px; line-height: 1.55; }
@@ -324,12 +333,12 @@ button:active { transform: scale(.97); }
       <button id="btn-music" class="ghost-btn">🎵</button>
       <button id="btn-sfx" class="ghost-btn">🔊</button>
       <button id="btn-menu" class="ghost-btn" hidden>Menu</button>
-      <button id="btn-resume" class="ghost-btn" hidden aria-label="Resume game">✕</button>
     </div>
   </header>
 
   <!-- start screen -->
   <section id="screen-start">
+    <button id="btn-resume" class="ghost-btn" hidden aria-label="Resume game">✕</button>
     <h2>You vs Bot — one board, turn by turn</h2>
     <p class="rules">
       Take turns placing pieces on a shared 8×8 board. You each have your
