@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#081a4a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Block Duel — you vs the bot</title>
 <link rel="icon" href="data:,">
 <style>
@@ -950,7 +954,15 @@ async function showGameOver() {
   SEL('#overlay').hidden = false;
 }
 
+function requestFullscreen() {
+  const el = document.documentElement;
+  const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  if (!fn) return;
+  try { const p = fn.call(el); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+}
+
 function uiStartGame(difficulty) {
+  requestFullscreen();
   flowGen++; cancelDrag(); newGame(difficulty);
   SEL('#screen-start').hidden = true; SEL('#screen-game').hidden = false;
   SEL('#overlay').hidden = true; SEL('#btn-menu').hidden = false;
