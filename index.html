@@ -460,6 +460,14 @@ const Music = (() => {
     audio.loop = true;
     audio.volume = 0.4;
     audio.preload = 'auto';
+    // Safeguard: restart from the top if the track ever ends (some browsers
+    // can drop the native loop), as long as music is still enabled.
+    audio.addEventListener('ended', () => {
+      if (!musicOn) return;
+      audio.currentTime = 0;
+      const p = audio.play();
+      if (p && p.catch) p.catch(() => {});
+    });
     return audio;
   }
 
