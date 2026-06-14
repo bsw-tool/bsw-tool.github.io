@@ -58,7 +58,11 @@ body {
 #app {
   max-width: 560px;
   margin: 0 auto;
-  padding: 12px 14px 30px;
+  padding:
+    calc(12px + env(safe-area-inset-top))
+    calc(14px + env(safe-area-inset-right))
+    calc(30px + env(safe-area-inset-bottom))
+    calc(14px + env(safe-area-inset-left));
   display: flex;
   flex-direction: column;
   gap: 12px;
