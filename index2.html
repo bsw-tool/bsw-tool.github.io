@@ -1147,7 +1147,7 @@ function shareCardColors() {
 }
 
 function buildShareCard() {
-  const W = 1080, H = 1080;
+  const W = 1080, H = 1350;
   const cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
   const x = cv.getContext('2d');
@@ -1162,7 +1162,7 @@ function buildShareCard() {
   // decorative drifting blocks
   const palette = ['#ef2d3c', '#ff8a1e', '#ffd11a', '#45c93a', '#25d0d0', '#2f7bff', '#a64dff', '#ff5bbf'];
   x.save();
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 20; i++) {
     x.globalAlpha = 0.08 + (i % 3) * 0.03;
     x.fillStyle = palette[i % palette.length];
     const s = 60 + (i * 37 % 90);
@@ -1179,42 +1179,42 @@ function buildShareCard() {
 
   // logo
   x.font = '800 60px "Segoe UI", system-ui, sans-serif';
-  x.fillStyle = col.text; x.fillText('BLOCK', cx - 70, 150);
-  x.fillStyle = col.accent; x.fillText('DUEL', cx + 95, 150);
+  x.fillStyle = col.text; x.fillText('BLOCK', cx - 70, 180);
+  x.fillStyle = col.accent; x.fillText('DUEL', cx + 95, 180);
 
   // title
   x.fillStyle = col.text;
-  x.font = '800 120px "Segoe UI", system-ui, sans-serif';
-  x.fillText('I beat the Bot!', cx, 330);
-  x.font = '600 46px "Segoe UI", system-ui, sans-serif';
+  x.font = '800 150px "Segoe UI", system-ui, sans-serif';
+  x.fillText('Victory! 🏆', cx, 470);
+  x.font = '600 48px "Segoe UI", system-ui, sans-serif';
   x.fillStyle = '#9fb6e8';
-  x.fillText('on ' + r.difficulty.toUpperCase() + ' difficulty', cx, 400);
+  x.fillText('I beat the Bot on ' + r.difficulty.toUpperCase(), cx, 560);
 
   // score block
   const drawScore = (label, val, color, y) => {
     x.fillStyle = 'rgba(255,255,255,.07)';
-    if (x.roundRect) { x.beginPath(); x.roundRect(160, y, W - 320, 130, 24); x.fill(); }
-    else x.fillRect(160, y, W - 320, 130);
+    if (x.roundRect) { x.beginPath(); x.roundRect(160, y, W - 320, 150, 26); x.fill(); }
+    else x.fillRect(160, y, W - 320, 150);
     x.textAlign = 'left';
-    x.fillStyle = col.text; x.font = '700 54px "Segoe UI", system-ui, sans-serif';
-    x.fillText(label, 210, y + 85);
+    x.fillStyle = col.text; x.font = '700 58px "Segoe UI", system-ui, sans-serif';
+    x.fillText(label, 215, y + 98);
     x.textAlign = 'right';
-    x.fillStyle = color; x.font = '800 80px "Segoe UI", system-ui, sans-serif';
-    x.fillText(String(val), W - 210, y + 92);
+    x.fillStyle = color; x.font = '800 88px "Segoe UI", system-ui, sans-serif';
+    x.fillText(String(val), W - 215, y + 105);
     x.textAlign = 'center';
   };
-  drawScore('You', r.you, col.you, 500);
-  drawScore('Bot', r.bot, col.bot, 660);
+  drawScore('You', r.you, col.you, 690);
+  drawScore('Bot', r.bot, col.bot, 880);
 
   // high score / record
   x.fillStyle = col.accent;
-  x.font = '700 50px "Segoe UI", system-ui, sans-serif';
-  x.fillText(r.isRecord ? ('🏆 New high score: ' + r.best) : ('🏆 Best: ' + r.best), cx, 900);
+  x.font = '700 54px "Segoe UI", system-ui, sans-serif';
+  x.fillText(r.isRecord ? ('🏆 New high score: ' + r.best) : ('🏆 Best: ' + r.best), cx, 1140);
 
   // footer url
   x.fillStyle = '#9fb6e8';
-  x.font = '600 40px "Segoe UI", system-ui, sans-serif';
-  x.fillText('bsw-tool.github.io', cx, 1010);
+  x.font = '600 44px "Segoe UI", system-ui, sans-serif';
+  x.fillText('bsw-tool.github.io', cx, 1270);
 
   return cv;
 }
