@@ -342,7 +342,7 @@ button:active { transform: scale(.97); }
       <button class="diff selected" data-diff="normal">🤖 Normal</button>
       <button class="diff" data-diff="hard">🔥 Hard</button>
     </div>
-    <p class="rules" id="start-highscore">🏆 Your best: <em id="start-highscore-val">0</em></p>
+    <p class="rules" id="start-highscore">🏆 Your best on <em id="start-highscore-diff">normal</em>: <em id="start-highscore-val">0</em></p>
     <button id="btn-start" class="primary">Start game</button>
   </section>
 
@@ -403,12 +403,15 @@ function getCookie(name) {
     return key === name ? decodeURIComponent(pair.slice(idx + 1)) : acc;
   }, '');
 }
-function getHighScore() {
-  const v = parseInt(getCookie(HIGHSCORE_COOKIE), 10);
+function highScoreKey(difficulty) {
+  return `${HIGHSCORE_COOKIE}_${difficulty}`;
+}
+function getHighScore(difficulty) {
+  const v = parseInt(getCookie(highScoreKey(difficulty)), 10);
   return Number.isFinite(v) && v > 0 ? v : 0;
 }
-function saveHighScore(score) {
-  if (score > getHighScore()) { setCookie(HIGHSCORE_COOKIE, score); return true; }
+function saveHighScore(score, difficulty) {
+  if (score > getHighScore(difficulty)) { setCookie(highScoreKey(difficulty), score); return true; }
   return false;
 }
 
@@ -925,14 +928,14 @@ async function showGameOver() {
   const stuckTxt = Game.stuck === 'human' ? 'You had no room left for any of your pieces.' : 'The bot had no room left for any of its pieces.';
   const tie = Game.scores.human === Game.scores.bot ? ' Scores tied — the stuck player loses.' : '';
   SEL('#go-reason').textContent = stuckTxt + tie;
-  const isRecord = saveHighScore(Game.scores.human);
-  const best = getHighScore();
+  const isRecord = saveHighScore(Game.scores.human, Game.difficulty);
+  const best = getHighScore(Game.difficulty);
   SEL('#go-scores').innerHTML =
     `<div class="go-row you"><span>You</span><b>${Game.scores.human}</b></div>` +
     `<div class="go-row bot"><span>Bot <small style="font-weight:400;opacity:.7">(${Game.difficulty})</small></span><b>${Game.scores.bot}</b></div>` +
     (isRecord
-      ? `<div class="go-row"><span>🏆 New high score!</span><b>${best}</b></div>`
-      : `<div class="go-row"><span>🏆 Your best</span><b>${best}</b></div>`);
+      ? `<div class="go-row"><span>🏆 New high score (${Game.difficulty})!</span><b>${best}</b></div>`
+      : `<div class="go-row"><span>🏆 Your best (${Game.difficulty})</span><b>${best}</b></div>`);
   renderHighScore();
   SEL('#overlay').hidden = false;
 }
@@ -947,7 +950,8 @@ function uiStartGame(difficulty) {
 }
 
 function renderHighScore() {
-  SEL('#start-highscore-val').textContent = getHighScore();
+  SEL('#start-highscore-diff').textContent = chosenDiff;
+  SEL('#start-highscore-val').textContent = getHighScore(chosenDiff);
 }
 
 function uiBackToMenu() {
@@ -966,6 +970,7 @@ window.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       chosenDiff = btn.dataset.diff;
       document.querySelectorAll('.diff').forEach(b => b.classList.toggle('selected', b === btn));
+      renderHighScore();
     });
   });
   SEL('#btn-start').addEventListener('click', () => uiStartGame(chosenDiff));
