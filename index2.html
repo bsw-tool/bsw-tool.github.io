@@ -9,31 +9,32 @@
 /* ============ BLOCK DUEL — theme & layout ============ */
 
 :root {
-  --bg: #2a1d5e;
-  --panel: #392a7a;
-  --panel-2: #4a3895;
-  --line: #5a47ab;
-  --text: #fbf7ff;
-  --dim: #c0b0ee;
-  --accent: #ffd23f;
-  --you: #45d6ff;
-  --bot: #ff6fa5;
-  --ok: #74e36a;
-  --bad: #ff5d73;
+  --bg: #0f2b6b;
+  --panel: #16357f;
+  --panel-2: #1e4399;
+  --line: #2f57b5;
+  --text: #f4f8ff;
+  --dim: #9fb6e8;
+  --accent: #ffd11a;
+  --you: #25d0d0;
+  --bot: #ef2d3c;
+  --ok: #45c93a;
+  --bad: #ef2d3c;
 
   --cell: clamp(34px, min(10.2vw, 6vh), 52px);
   --gap: 3px;
   --hand-cell: calc(var(--cell) * 0.46);
   --bot-cell: 9px;
 
-  --c0: #ff5d73;
-  --c1: #ff9f45;
-  --c2: #ffd23f;
-  --c3: #8ce25a;
-  --c4: #3dd6b0;
-  --c5: #4db5ff;
-  --c6: #a06bff;
-  --c7: #ff6bd6;
+  /* classic Tetris tetromino colors */
+  --c0: #ef2d3c; /* Z - red */
+  --c1: #ff8a1e; /* L - orange */
+  --c2: #ffd11a; /* O - yellow */
+  --c3: #45c93a; /* S - green */
+  --c4: #25d0d0; /* I - cyan */
+  --c5: #2f7bff; /* J - blue */
+  --c6: #a64dff; /* T - purple */
+  --c7: #ff5bbf; /* extra - pink */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,8 +43,7 @@ html, body { min-height: 100%; }
 
 body {
   background:
-    radial-gradient(1000px 700px at 50% -12%, #6a4fd0 0%, rgba(106, 79, 208, 0) 58%),
-    radial-gradient(800px 600px at 90% 110%, #ff6fa5 0%, rgba(255, 111, 165, 0) 55%),
+    radial-gradient(1100px 750px at 50% -14%, #2f6bdf 0%, rgba(47, 107, 223, 0) 60%),
     var(--bg);
   color: var(--text);
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -193,9 +193,9 @@ button:active { transform: scale(.97); }
 .cell {
   width: var(--cell);
   height: var(--cell);
-  background: #2c1f63;
+  background: #0c2356;
   border-radius: 7px;
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .35);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .4);
 }
 .cell.filled {
   box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .25), inset 0 3px 3px rgba(255, 255, 255, .22);
