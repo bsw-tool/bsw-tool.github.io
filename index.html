@@ -42,9 +42,7 @@
 html, body { min-height: 100%; }
 
 body {
-  background:
-    radial-gradient(1100px 750px at 50% -14%, #2f6bdf 0%, rgba(47, 107, 223, 0) 60%),
-    var(--bg);
+  background: linear-gradient(180deg, #081a4a 0%, #1c47a8 55%, #3a78e0 100%) fixed;
   color: var(--text);
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   user-select: none;
@@ -79,6 +77,13 @@ button {
 button:hover { filter: brightness(1.15); }
 button:active { transform: scale(.97); }
 .ghost-btn { background: transparent; color: var(--dim); }
+#btn-music, #btn-sfx {
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .28);
+  color: var(--text);
+  padding: 8px 12px;
+}
+#btn-music:hover, #btn-sfx:hover { background: rgba(255, 255, 255, .2); }
 .primary {
   background: linear-gradient(180deg, #ffc46f, var(--accent));
   border: none;
