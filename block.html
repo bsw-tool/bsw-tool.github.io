@@ -342,6 +342,7 @@ button:active { transform: scale(.97); }
       <button class="diff selected" data-diff="normal">🤖 Normal</button>
       <button class="diff" data-diff="hard">🔥 Hard</button>
     </div>
+    <p class="rules" id="start-highscore">🏆 Your best: <em id="start-highscore-val">0</em></p>
     <button id="btn-start" class="primary">Start game</button>
   </section>
 
@@ -388,6 +389,29 @@ button:active { transform: scale(.97); }
 </div>
 
 <script>
+/* ============ HIGH SCORE (cookie) ============ */
+const HIGHSCORE_COOKIE = 'blockduel_highscore';
+
+function setCookie(name, value, days = 365) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+}
+function getCookie(name) {
+  return document.cookie.split('; ').reduce((acc, pair) => {
+    const idx = pair.indexOf('=');
+    const key = pair.slice(0, idx);
+    return key === name ? decodeURIComponent(pair.slice(idx + 1)) : acc;
+  }, '');
+}
+function getHighScore() {
+  const v = parseInt(getCookie(HIGHSCORE_COOKIE), 10);
+  return Number.isFinite(v) && v > 0 ? v : 0;
+}
+function saveHighScore(score) {
+  if (score > getHighScore()) { setCookie(HIGHSCORE_COOKIE, score); return true; }
+  return false;
+}
+
 /* ============ AUDIO ============ */
 let sfxOn   = localStorage.getItem('blockduel_sfx')   !== 'off';
 let musicOn = localStorage.getItem('blockduel_music')  !== 'off';
@@ -901,9 +925,15 @@ async function showGameOver() {
   const stuckTxt = Game.stuck === 'human' ? 'You had no room left for any of your pieces.' : 'The bot had no room left for any of its pieces.';
   const tie = Game.scores.human === Game.scores.bot ? ' Scores tied — the stuck player loses.' : '';
   SEL('#go-reason').textContent = stuckTxt + tie;
+  const isRecord = saveHighScore(Game.scores.human);
+  const best = getHighScore();
   SEL('#go-scores').innerHTML =
     `<div class="go-row you"><span>You</span><b>${Game.scores.human}</b></div>` +
-    `<div class="go-row bot"><span>Bot <small style="font-weight:400;opacity:.7">(${Game.difficulty})</small></span><b>${Game.scores.bot}</b></div>`;
+    `<div class="go-row bot"><span>Bot <small style="font-weight:400;opacity:.7">(${Game.difficulty})</small></span><b>${Game.scores.bot}</b></div>` +
+    (isRecord
+      ? `<div class="go-row"><span>🏆 New high score!</span><b>${best}</b></div>`
+      : `<div class="go-row"><span>🏆 Your best</span><b>${best}</b></div>`);
+  renderHighScore();
   SEL('#overlay').hidden = false;
 }
 
@@ -914,6 +944,10 @@ function uiStartGame(difficulty) {
   SEL('#bot-diff').textContent = '· ' + Game.difficulty;
   inputLocked = false; Music.start();
   renderBoard(); renderHands(); updateHud();
+}
+
+function renderHighScore() {
+  SEL('#start-highscore-val').textContent = getHighScore();
 }
 
 function uiBackToMenu() {
@@ -927,6 +961,7 @@ let chosenDiff = 'normal';
 
 window.addEventListener('DOMContentLoaded', () => {
   initUI();
+  renderHighScore();
   document.querySelectorAll('.diff').forEach(btn => {
     btn.addEventListener('click', () => {
       chosenDiff = btn.dataset.diff;
