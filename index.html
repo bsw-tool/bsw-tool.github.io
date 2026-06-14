@@ -452,44 +452,26 @@ const Sfx = {
 };
 
 const Music = (() => {
-  let timer = null, nextTime = 0, step = 0;
-  const BPM = 138, STEP = 60 / BPM / 2, AHEAD = 0.12, TICK = 50;
-  const bass = [130.81,0,130.81,0,155.56,0,155.56,0,174.61,0,174.61,0,155.56,0,130.81,0];
-  const lead = [523.25,0,659.25,783.99,0,659.25,523.25,0,392.00,0,523.25,659.25,0,783.99,659.25,0];
+  let audio = null;
 
-  function schedNote(freq, vol, type, when, dur) {
-    try {
-      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type = type; o.frequency.value = freq;
-      g.gain.setValueAtTime(vol, when);
-      g.gain.exponentialRampToValueAtTime(0.001, when + dur);
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(when); o.stop(when + dur + 0.01);
-    } catch (e) {}
-  }
-
-  function tick() {
-    const len = bass.length;
-    while (nextTime < audioCtx.currentTime + AHEAD) {
-      const i = step % len;
-      if (musicOn) {
-        if (bass[i]) schedNote(bass[i], 0.05, 'sawtooth', nextTime, STEP * 0.75);
-        if (lead[i]) schedNote(lead[i], 0.025, 'square',  nextTime, STEP * 0.60);
-      }
-      nextTime += STEP; step++;
-    }
+  function ensure() {
+    if (audio) return audio;
+    audio = new Audio('assets/bgm.mp3');
+    audio.loop = true;
+    audio.volume = 0.4;
+    audio.preload = 'auto';
+    return audio;
   }
 
   function start() {
-    if (timer || !musicOn) return;
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    nextTime = audioCtx.currentTime + 0.05; step = 0;
-    timer = setInterval(tick, TICK);
+    if (!musicOn) return;
+    const a = ensure();
+    const p = a.play();
+    if (p && p.catch) p.catch(() => {});
   }
 
   function stop() {
-    if (timer) { clearInterval(timer); timer = null; }
+    if (audio) { audio.pause(); audio.currentTime = 0; }
   }
 
   return { start, stop };
