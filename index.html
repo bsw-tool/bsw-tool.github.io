@@ -928,7 +928,7 @@ async function showGameOver() {
   const stuckTxt = Game.stuck === 'human' ? 'You had no room left for any of your pieces.' : 'The bot had no room left for any of its pieces.';
   const tie = Game.scores.human === Game.scores.bot ? ' Scores tied — the stuck player loses.' : '';
   SEL('#go-reason').textContent = stuckTxt + tie;
-  const isRecord = saveHighScore(Game.scores.human, Game.difficulty);
+  const isRecord = Game.winner === 'human' ? saveHighScore(Game.scores.human, Game.difficulty) : false;
   const best = getHighScore(Game.difficulty);
   SEL('#go-scores').innerHTML =
     `<div class="go-row you"><span>You</span><b>${Game.scores.human}</b></div>` +
